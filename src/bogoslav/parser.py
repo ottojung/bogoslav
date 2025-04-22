@@ -107,9 +107,14 @@ class _ASTTransformer(Transformer[Token, Sequence[AIBlock]]):
 
     def ai_block(
         self,
-        items: Sequence[Union[Tuple[str,Sequence[Tuple[str,str]]], str, None]],
+        items: Sequence[Union[Tuple[str, Sequence[Tuple[str, ParamValue]]], str, None]],
     ) -> AIBlock:
-        language, param_list = items[0]  # type: ignore
+        for x in items:
+            if isinstance(x, tuple):
+                language, param_list = x
+                break
+        else:
+            raise RuntimeError("Expected language and param list.")
         lines = [x for x in items[1:] if isinstance(x, str)]
         return AIBlock(language, dict(param_list), "".join(lines))
 
