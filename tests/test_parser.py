@@ -121,6 +121,7 @@ Maybe another question here.
         ),
         (
             "assistant",
+            "\n"
             "Some response here.\n"
             "Can be\n"
             "multiline\n"
@@ -128,6 +129,47 @@ Maybe another question here.
         ),
         (
             "user",
+            "\n"
+            "Maybe another question here.\n"
+        ),
+    ]
+
+def test_parse_with_assistant_and_user_headers_2() -> None:
+    # a block that starts with user text, then assistant reply, then user follow‑up
+    text = """!+begin_ai markdown :model "o3-mini"
+Some question here.
+Can be multiline...
+[AI]: Some response here.
+Can be
+multiline
+as well.
+[ME]:
+Maybe another question here.
+!+end_ai
+"""
+    parsed = parse(text)
+    assert len(parsed) == 1
+    pb = parsed[0]
+    assert pb.language == "markdown"
+    assert pb.params == {"model": "o3-mini"}
+
+    # Expect three messages: default‐user, assistant, then user
+    assert pb.messages == [
+        (
+            "user",
+            "Some question here.\n"
+            "Can be multiline...\n"
+        ),
+        (
+            "assistant",
+            "Some response here.\n"
+            "Can be\n"
+            "multiline\n"
+            "as well.\n"
+        ),
+        (
+            "user",
+            "\n"
             "Maybe another question here.\n"
         ),
     ]
@@ -146,8 +188,8 @@ OK thanks
     msgs = parsed[0].messages
     # first message comes from header
     assert msgs == [
-        ("assistant", "Hello!\n"),
-        ("user", "OK thanks\n"),
+        ("assistant", "\nHello!\n"),
+        ("user", "\nOK thanks\n"),
     ]
 
 def test_parse_multiple_blocks_top_level() -> None:
@@ -175,8 +217,8 @@ Followup B
 
     assert pb2.language == "b"
     assert pb2.messages == [
-        ("assistant", "Reply B\n"),
-        ("user", "Followup B\n"),
+        ("assistant", "\nReply B\n"),
+        ("user", "\nFollowup B\n"),
     ]
 
 def test_parse_malformed_passes_error_through() -> None:

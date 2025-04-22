@@ -143,8 +143,8 @@ message: header body_lines*
 header: ME_HEADER     -> me
       | AI_HEADER     -> ai
 
-ME_HEADER: "[ME]:" WS_INLINE? NEWLINE
-AI_HEADER: "[AI]:" WS_INLINE? NEWLINE
+ME_HEADER: "[ME]:" WS_INLINE?
+AI_HEADER: "[AI]:" WS_INLINE?
 
 # Body = every line up to (but not including) the *next* header
 body_lines: /(?:(?!(?:\[ME\]:|\[AI\]:))[^\n]*\n)/
