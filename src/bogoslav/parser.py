@@ -76,7 +76,7 @@ class _ASTTransformer(Transformer[Token, Sequence[AIBlock]]):
         items: Sequence[Union[Token, Tuple[str,str]]]
     ) -> Tuple[str, Sequence[Tuple[str,str]]]:
         lang: Optional[str] = None
-        params: Sequence[Tuple[str,str]] = []
+        params: List[Tuple[str,str]] = []
         for it in items:
             if isinstance(it, Token) and it.type == "LANGUAGE":
                 lang = it.value
