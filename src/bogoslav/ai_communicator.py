@@ -33,7 +33,7 @@ from pathlib import Path
 from functools import cache
 
 from .user_error import UserError
-from .parser import Message, MessageRole
+from .parser import Message, MessageRole, Conversation
 
 
 KEY_NAME = "MY_GEMINI_API_KEY"
@@ -57,8 +57,6 @@ def _get_client() -> genai.Client:
 # ---------------------------------------------------------------------------
 # Local structural types
 # ---------------------------------------------------------------------------
-
-Conversation = Sequence[Message]
 
 
 def _to_gemini_payload(conv: Conversation) -> Iterator[genai.types.Content]:

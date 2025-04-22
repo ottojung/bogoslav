@@ -177,8 +177,11 @@ class Message:
     text: MessageText
 
 
-class _MsgTransformer(Transformer[Token, Sequence[Message]]):
-    def start(self, items: Sequence[Message]) -> Sequence[Message]:
+Conversation = Sequence[Message]
+
+
+class _MsgTransformer(Transformer[Token, Conversation]):
+    def start(self, items: Conversation) -> Conversation:
         return items
 
     def default_message(self, items: Sequence[str]) -> Message:
@@ -212,7 +215,7 @@ _msg_parser = Lark(
     maybe_placeholders=False,
 )
 
-def split_messages(block_content: str) -> Sequence[Message]:
+def split_messages(block_content: str) -> Conversation:
     """
     Pass 2: split a raw block.content into (role, message_text) tuples.
     """
@@ -235,7 +238,7 @@ class ParsedAIBlock:
     """
     language: Language
     params: AIBlockParams
-    messages: Sequence[Message]
+    messages: Conversation
 
 
 def parse(text: str) -> Sequence[ParsedAIBlock]:
