@@ -37,7 +37,7 @@ from .parser import Message, MessageRole, Conversation
 
 
 KEY_NAME = "MY_GEMINI_API_KEY"
-MODEL="gemini-2.0-flash",
+MODEL = "gemini-2.0-flash"
 
 
 class NoAPIKey(UserError):
