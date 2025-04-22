@@ -1,0 +1,59 @@
+[project]
+name = "bogoslav"
+version = "0.1.0"
+description = "An AI chat helper."
+authors = [
+    {name = "Vitaliy Mysak", email = "vmysak@bccfe.ca"},
+]
+license = {text = "GPL-3.0-or-later"}
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "google-genai",
+    "lark",
+]
+
+[project.scripts]
+bogoslav = "bogoslav.main:cli"
+
+[project.optional-dependencies]
+test = [
+    # Dependencies required for running the test suite
+    "pytest",
+    "pytest-cov",
+]
+dev = [
+    # Dependencies required for development (linting, type checking, etc.)
+    "flake8",
+    "mypy",
+]
+
+[project.urls]
+homepage = "https://github.com/Donaim/bogoslav"
+repository = "https://github.com/Donaim/bogoslav"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.mypy]
+files = ["src/bogoslav", "tests"]
+ignore_missing_imports = true
+strict_optional = true
+allow_untyped_calls = true
+warn_return_any = true
+warn_unused_ignores = true
+disallow_untyped_defs = false
+strict = true
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
