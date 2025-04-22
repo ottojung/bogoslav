@@ -97,12 +97,12 @@ def test_parse_with_assistant_and_user_headers() -> None:
     text = """!+begin_ai markdown :model "o3-mini"
 Some question here.
 Can be multiline...
-```assistant
+[AI]:
 Some response here.
 Can be
 multiline
 as well.
-```user
+[ME]:
 Maybe another question here.
 !+end_ai
 """
@@ -135,9 +135,9 @@ Maybe another question here.
 def test_parse_header_first() -> None:
     # block content begins immediately with a header → no default_user
     text = """!+begin_ai md
-```assistant
+[AI]:
 Hello!
-```user
+[ME]:
 OK thanks
 !+end_ai
 """
@@ -158,9 +158,9 @@ Line A2
 !+end_ai
 
 !+begin_ai b
-```assistant
+[AI]:
 Reply B
-```user
+[ME]:
 Followup B
 !+end_ai
 """

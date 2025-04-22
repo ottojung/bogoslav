@@ -5,7 +5,7 @@ Two‐pass parser for AI‐block annotated text.
 Pass 1: extract !+begin_ai … !+end_ai blocks into AIBlock(language, params, content).
 Pass 2: split each AIBlock.content into a sequence of (role, message_text)
          where role is "user" or "assistant", as demarcated by lines
-         starting with ```user or ```assistant.
+         starting with [ME]: or [AI]:.
 
 The top‐level function `parse()` runs both passes and returns a list of
 fully‐parsed blocks.
@@ -137,11 +137,19 @@ default_message: body_lines+
 
 message: header body_lines*
 
-header: "```" ROLE NEWLINE
-body_lines: /(?:(?!```)[^\n]*\n)/
+# ------------------------------------------------------------------
+#  ❖ Header lines now look like “[ME]: …” or “[AI]: …”
+# ------------------------------------------------------------------
+header: ME_HEADER     -> me
+      | AI_HEADER     -> ai
 
-ROLE: /user|assistant/
+ME_HEADER: "[ME]:" WS_INLINE? NEWLINE
+AI_HEADER: "[AI]:" WS_INLINE? NEWLINE
 
+# Body = every line up to (but not including) the *next* header
+body_lines: /(?:(?!(?:\[ME\]:|\[AI\]:))[^\n]*\n)/
+
+%import common.WS_INLINE
 %import common.NEWLINE
 """
 
@@ -169,11 +177,11 @@ class _MsgTransformer(Transformer[Token, Sequence[Message]]):
         body = "".join(map(str, items[1:]))
         return (role, body)
 
-    def header(self, items: Sequence[Token]) -> MessageRole:
-        val = items[0].value
-        assert val == "user" or val == "assistant"
-        ret: MessageRole = val
-        return ret
+    def me(self, _: Sequence[Token]) -> MessageRole:
+        return "user"
+
+    def ai(self, _: Sequence[Token]) -> MessageRole:
+        return "assistant"
 
     def body_lines(self, items: Sequence[Token]) -> str:
         ret = items[0].value
