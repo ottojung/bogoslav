@@ -14,6 +14,7 @@ fully‐parsed blocks.
 from dataclasses import dataclass
 from typing import List, Dict, Tuple, Optional, Union, Sequence, Literal
 from lark import Lark, Transformer, Token, Tree
+from ast import literal_eval
 
 # ------------------------------------------------------------------------------
 # PASS 1: find #+begin_ai … #+end_ai blocks
@@ -94,7 +95,7 @@ class _ASTTransformer(Transformer[Token, Sequence[AIBlock]]):
         try:
             val = int(val_raw)
         except BaseException:
-            val = val_raw[1:-1]
+            val = literal_eval(val_raw)
         return key, val
 
     def content(self, items: Sequence[Token]) -> str:
