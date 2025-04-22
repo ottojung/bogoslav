@@ -154,19 +154,21 @@ message: header body_lines*
 # ------------------------------------------------------------------
 header: ME_HEADER     -> me
       | AI_HEADER     -> ai
+      | SYS_HEADER    -> system
 
 ME_HEADER: "[ME]:" WS_INLINE?
 AI_HEADER: "[AI]:" WS_INLINE?
+SYS_HEADER: "[SYSTEM]:" WS_INLINE?
 
 # Body = every line up to (but not including) the *next* header
-body_lines: /(?:(?!(?:\[ME\]:|\[AI\]:))[^\n]*\n)/
+body_lines: /(?:(?!(?:\[ME\]:|\[AI\]:|\[SYSTEM\]:))[^\n]*\n)/
 
 %import common.WS_INLINE
 %import common.NEWLINE
 """
 
 
-MessageRole = Literal["user", "assistant"]
+MessageRole = Literal["user", "assistant", "system"]
 MessageText = str
 Message = Tuple[MessageRole, MessageText]
 
@@ -180,12 +182,7 @@ class _MsgTransformer(Transformer[Token, Sequence[Message]]):
 
     def message(self, items: Sequence[str]) -> Message:
         role_val: str = items[0]
-        if role_val == "user":
-            role: MessageRole = "user"
-        elif role_val == "assistant":
-            role = "assistant"
-        else:
-            raise TypeError("Invalid role.", role_val)
+        role: MessageRole = role_val  # type: ignore
         body = "".join(map(str, items[1:]))
         return (role, body)
 
@@ -194,6 +191,9 @@ class _MsgTransformer(Transformer[Token, Sequence[Message]]):
 
     def ai(self, _: Sequence[Token]) -> MessageRole:
         return "assistant"
+
+    def system(self, _: Sequence[Token]) -> MessageRole:
+        return "system"
 
     def body_lines(self, items: Sequence[Token]) -> str:
         ret = items[0].value
