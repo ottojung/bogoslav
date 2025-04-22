@@ -30,7 +30,7 @@ ai_block: begin_line content* end_line
 begin_line: BEGIN_MARK WS_INLINE LANGUAGE (WS_INLINE param)* WS_INLINE? NEWLINE
 end_line:   END_MARK   WS_INLINE? NEWLINE
 
-param: ":" CNAME WS_INLINE QUOTED_STRING
+param: ":" CNAME WS_INLINE (ESCAPED_STRING | NUMBER)
 content: CONTENT_LINE
 
 BEGIN_MARK:    /[ \t]*\#\+begin_ai/
@@ -41,7 +41,8 @@ LANGUAGE:      /[A-Za-z][A-Za-z0-9\-]*/
 %import common.CNAME
 %import common.WS_INLINE
 %import common.NEWLINE
-%import common.ESCAPED_STRING -> QUOTED_STRING
+%import common.ESCAPED_STRING
+%import common.NUMBER
 
 CONTENT_LINE:  /(?![ \t]*\#\+end_ai)[^\n]*\n/
 OTHER_LINE:    /[^\n]*\n/
@@ -50,7 +51,8 @@ OTHER_LINE:    /[^\n]*\n/
 """
 
 Language = str
-AIBlockParams = Dict[str, Union[str, int]]
+ParamValue = Union[str, int]
+AIBlockParams = Dict[str, ParamValue]
 
 @dataclass(frozen=True)
 class AIBlock:
@@ -74,9 +76,9 @@ class _ASTTransformer(Transformer[Token, Sequence[AIBlock]]):
     def begin_line(
         self,
         items: Sequence[Union[Token, Tuple[str,str]]]
-    ) -> Tuple[str, Sequence[Tuple[str,str]]]:
+    ) -> Tuple[str, Sequence[Tuple[str, ParamValue]]]:
         lang: Optional[str] = None
-        params: List[Tuple[str,str]] = []
+        params: List[Tuple[str, ParamValue]] = []
         for it in items:
             if isinstance(it, Token) and it.type == "LANGUAGE":
                 lang = it.value
@@ -85,10 +87,14 @@ class _ASTTransformer(Transformer[Token, Sequence[AIBlock]]):
         assert lang is not None, "Missing LANGUAGE in begin_line"
         return lang, params
 
-    def param(self, items: Sequence[Token]) -> Tuple[str,str]:
+    def param(self, items: Sequence[Token]) -> Tuple[str, ParamValue]:
         key_tok, _ws, val_tok = items
         key = key_tok.value
-        val = val_tok.value[1:-1]
+        val_raw = val_tok.value
+        try:
+            val = int(val_raw)
+        except BaseException:
+            val = val_raw[1:-1]
         return key, val
 
     def content(self, items: Sequence[Token]) -> str:

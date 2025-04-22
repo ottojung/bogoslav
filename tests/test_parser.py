@@ -212,6 +212,44 @@ as well.
         ),
     ]
 
+def test_parse_with_assistant_and_user_headers_4() -> None:
+    # a block that starts with user text, then assistant reply, then user follow‑up
+    text = """#+begin_ai markdown :some_number 42
+Some question here.
+Can be multiline...
+[AI]:Some response here.
+Can be
+multiline
+as well.
+[ME]:Maybe another question here.
+#+end_ai
+"""
+    parsed = parse(text)
+    assert len(parsed) == 1
+    pb = parsed[0]
+    assert pb.language == "markdown"
+    assert pb.params == {"some_number": 42}
+
+    # Expect three messages: default‐user, assistant, then user
+    assert pb.messages == [
+        (
+            "user",
+            "Some question here.\n"
+            "Can be multiline...\n"
+        ),
+        (
+            "assistant",
+            "Some response here.\n"
+            "Can be\n"
+            "multiline\n"
+            "as well.\n"
+        ),
+        (
+            "user",
+            "Maybe another question here.\n"
+        ),
+    ]
+
 def test_parse_header_first() -> None:
     # block content begins immediately with a header → no default_user
     text = """#+begin_ai md
