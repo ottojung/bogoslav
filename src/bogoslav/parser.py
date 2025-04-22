@@ -64,19 +64,19 @@ class AIBlock:
     params: AIBlockParams
     content: str
 
-class _ASTTransformer(Transformer[Token, List[AIBlock]]):
-    def blank_line(self, _: List[Tree[Token]]) -> None:
+class _ASTTransformer(Transformer[Token, Sequence[AIBlock]]):
+    def blank_line(self, _: Sequence[Tree[Token]]) -> None:
         return None
 
-    def _ignore(self, _: List[Tree[Token]]) -> None:
+    def _ignore(self, _: Sequence[Tree[Token]]) -> None:
         return None
 
     def begin_line(
         self,
-        items: List[Union[Token, Tuple[str,str]]]
-    ) -> Tuple[str, List[Tuple[str,str]]]:
+        items: Sequence[Union[Token, Tuple[str,str]]]
+    ) -> Tuple[str, Sequence[Tuple[str,str]]]:
         lang: Optional[str] = None
-        params: List[Tuple[str,str]] = []
+        params: Sequence[Tuple[str,str]] = []
         for it in items:
             if isinstance(it, Token) and it.type == "LANGUAGE":
                 lang = it.value
@@ -85,29 +85,29 @@ class _ASTTransformer(Transformer[Token, List[AIBlock]]):
         assert lang is not None, "Missing LANGUAGE in begin_line"
         return lang, params
 
-    def param(self, items: List[Token]) -> Tuple[str,str]:
+    def param(self, items: Sequence[Token]) -> Tuple[str,str]:
         key_tok, _ws, val_tok = items
         key = key_tok.value
         val = val_tok.value[1:-1]
         return key, val
 
-    def content(self, items: List[Token]) -> str:
+    def content(self, items: Sequence[Token]) -> str:
         ret = items[0].value
         assert isinstance(ret, str)
         return ret
 
-    def end_line(self, _: List[Tree[Token]]) -> None:
+    def end_line(self, _: Sequence[Tree[Token]]) -> None:
         return None
 
     def ai_block(
         self,
-        items: List[Union[Tuple[str,List[Tuple[str,str]]], str, None]],
+        items: Sequence[Union[Tuple[str,Sequence[Tuple[str,str]]], str, None]],
     ) -> AIBlock:
         language, param_list = items[0]  # type: ignore
         lines = [x for x in items[1:] if isinstance(x, str)]
         return AIBlock(language, dict(param_list), "".join(lines))
 
-    def start(self, items: List[Optional[AIBlock]]) -> List[AIBlock]:
+    def start(self, items: Sequence[Optional[AIBlock]]) -> Sequence[AIBlock]:
         return [b for b in items if isinstance(b, AIBlock)]
 
 _parser = Lark(
@@ -117,7 +117,7 @@ _parser = Lark(
     maybe_placeholders=False,
 )
 
-def parse_ai_blocks(text: str) -> List[AIBlock]:
+def parse_ai_blocks(text: str) -> Sequence[AIBlock]:
     """
     Pass 1: parse the text, return raw AIBlock instances.
     Raises on malformed input.
@@ -151,14 +151,14 @@ MessageText = str
 Message = Tuple[MessageRole, MessageText]
 
 
-class _MsgTransformer(Transformer[Token, List[Message]]):
-    def start(self, items: List[Message]) -> List[Message]:
+class _MsgTransformer(Transformer[Token, Sequence[Message]]):
+    def start(self, items: Sequence[Message]) -> Sequence[Message]:
         return items
 
-    def default_message(self, items: List[str]) -> Message:
+    def default_message(self, items: Sequence[str]) -> Message:
         return ("user", "".join(items))
 
-    def message(self, items: List[str]) -> Message:
+    def message(self, items: Sequence[str]) -> Message:
         role_val: str = items[0]
         if role_val == "user":
             role: MessageRole = "user"
@@ -169,13 +169,13 @@ class _MsgTransformer(Transformer[Token, List[Message]]):
         body = "".join(map(str, items[1:]))
         return (role, body)
 
-    def header(self, items: List[Token]) -> MessageRole:
+    def header(self, items: Sequence[Token]) -> MessageRole:
         val = items[0].value
         assert val == "user" or val == "assistant"
         ret: MessageRole = val
         return ret
 
-    def body_lines(self, items: List[Token]) -> str:
+    def body_lines(self, items: Sequence[Token]) -> str:
         ret = items[0].value
         assert isinstance(ret, str)
         return ret
@@ -188,10 +188,11 @@ _msg_parser = Lark(
     maybe_placeholders=False,
 )
 
-def split_messages(block_content: str) -> List[Message]:
+def split_messages(block_content: str) -> Sequence[Message]:
     """
     Pass 2: split a raw block.content into (role, message_text) tuples.
     """
+
     tree = _msg_parser.parse(block_content)
     return _MsgTransformer().transform(tree)
 
@@ -210,10 +211,10 @@ class ParsedAIBlock:
     """
     language: Language
     params: AIBlockParams
-    messages: List[Message]
+    messages: Sequence[Message]
 
 
-def parse(text: str) -> List[ParsedAIBlock]:
+def parse(text: str) -> Sequence[ParsedAIBlock]:
     """
     Top‐level entry point.
 
@@ -222,7 +223,7 @@ def parse(text: str) -> List[ParsedAIBlock]:
     Returns a list of ParsedAIBlock.
     """
 
-    raw_blocks: List[AIBlock] = parse_ai_blocks(text)
+    raw_blocks: Sequence[AIBlock] = parse_ai_blocks(text)
     parsed: List[ParsedAIBlock] = []
     for blk in raw_blocks:
         msgs = split_messages(blk.content)
