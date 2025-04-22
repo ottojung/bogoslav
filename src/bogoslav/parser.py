@@ -2,7 +2,7 @@
 """
 Two‐pass parser for AI‐block annotated text.
 
-Pass 1: extract !+begin_ai … !+end_ai blocks into AIBlock(language, params, content).
+Pass 1: extract #+begin_ai … #+end_ai blocks into AIBlock(language, params, content).
 Pass 2: split each AIBlock.content into a sequence of (role, message_text)
          where role is "user" or "assistant", as demarcated by lines
          starting with [ME]: or [AI]:.
@@ -16,7 +16,7 @@ from typing import List, Dict, Tuple, Optional, Union, Sequence, Literal
 from lark import Lark, Transformer, Token, Tree
 
 # ------------------------------------------------------------------------------
-# PASS 1: find !+begin_ai … !+end_ai blocks
+# PASS 1: find #+begin_ai … #+end_ai blocks
 # ------------------------------------------------------------------------------
 
 GRAMMAR = r"""
@@ -33,8 +33,8 @@ end_line:   END_MARK   WS_INLINE? NEWLINE
 param: ":" CNAME WS_INLINE QUOTED_STRING
 content: CONTENT_LINE
 
-BEGIN_MARK:    /[ \t]*\!\+begin_ai/
-END_MARK:      /[ \t]*\!\+end_ai/
+BEGIN_MARK:    /[ \t]*\#\+begin_ai/
+END_MARK:      /[ \t]*\#\+end_ai/
 BLANK_LINE:    /[ \t]*\n/
 LANGUAGE:      /[A-Za-z][A-Za-z0-9\-]*/
 
@@ -43,7 +43,7 @@ LANGUAGE:      /[A-Za-z][A-Za-z0-9\-]*/
 %import common.NEWLINE
 %import common.ESCAPED_STRING -> QUOTED_STRING
 
-CONTENT_LINE:  /(?![ \t]*\!\+end_ai)[^\n]*\n/
+CONTENT_LINE:  /(?![ \t]*\#\+end_ai)[^\n]*\n/
 OTHER_LINE:    /[^\n]*\n/
 
 %ignore /#[^\n]*/
@@ -55,7 +55,7 @@ AIBlockParams = Dict[str, Union[str, int]]
 @dataclass(frozen=True)
 class AIBlock:
     """
-    One raw !+begin_ai … !+end_ai block.
+    One raw #+begin_ai … #+end_ai block.
       .language : str
       .params   : dict of key→value
       .content  : str (raw lines between markers, including newlines)
