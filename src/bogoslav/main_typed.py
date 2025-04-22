@@ -14,7 +14,7 @@ class CannotWriteToWorkFile(UserError):
 
 def main_typed(work_file: Path) -> None:
     try:
-        writer = work_file.open("r")
+        writer = work_file.open("a")
         logger.info("Opened existing file at %r.", str(work_file))
     except:  # noqa
         try:
