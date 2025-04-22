@@ -70,32 +70,32 @@ def _header_for_role(role: MessageRole) -> str:
     return "[ME]:" if role == "user" else "[AI]:"
 
 
-def _serialise_messages(messages: Sequence[Tuple[MessageRole, MessageText]]) -> str:
+def _serialise_messages(messages: Sequence[Message]) -> str:
     """Convert the *messages* list back into the textual body of a block."""
     out_parts: List[str] = []
 
-    for idx, (role, body) in enumerate(messages):
+    for idx, message in enumerate(messages):
         # Decide whether to drop the header for the very first user message –
         # this recreates the *default_user* shorthand accepted by the grammar.
-        if idx == 0 and role == "user":
+        if idx == 0 and message.role == "user":
             # Safe to omit header iff the body does **not** start with a newline
             # (because, in that case, the leading newline would become
             # indistinguishable from the newline *after* a header that lives on
             # its own line).
-            if not body.startswith("\n"):
-                out_parts.append(body)
+            if not message.text.startswith("\n"):
+                out_parts.append(message.text)
                 continue  # move on to next message
 
-        header = _header_for_role(role)
+        header = _header_for_role(message.role)
 
-        if body.startswith("\n"):
+        if message.text.startswith("\n"):
             # Put header on its own line → keep the leading newline in *body*.
-            out_parts.append(header + body)
+            out_parts.append(header + message.text)
         else:
             # Inline body after header.  Insert a single separating space unless
             # the body itself already begins with whitespace.
-            sep = "" if body[:1].isspace() else " "
-            out_parts.append(header + sep + body)
+            sep = "" if message.text[:1].isspace() else " "
+            out_parts.append(header + sep + message.text)
 
     return "".join(out_parts)
 

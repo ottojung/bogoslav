@@ -28,7 +28,7 @@ import os
 import sys
 from dataclasses import dataclass
 from google import genai
-from typing import Iterator, List, Sequence
+from typing import Iterator, List, Sequence, NoReturn
 from pathlib import Path
 from functools import cache
 
@@ -68,19 +68,18 @@ def _to_gemini_payload(conv: Conversation) -> Iterator[genai.types.Content]:
     divergence between *Bogoslav*'s chat schema and Gemini's expectations.
     """
 
-    role_map = {"user": "user", "assistant": "model", "system": "model"}  # last one handled elsewhere
-
-    for role, text in conv:
-        if role == "system":
-            system_instruction = text  # keep **last** one we encounter
+    for message in conv:
+        if message.role == "system":
             continue  # not part of chat history under new API rules
+        elif message.role == "user":
+            sdk_role = "user"
+        elif message.role == "assistant":
+            sdk_role = "model"
+        else:
+            _x: NoReturn = message.role
+            raise ValueError(f"Unsupported role {message.role!r}.")
 
-        try:
-            sdk_role = role_map[role]
-        except KeyError as exc:
-            raise ValueError(f"Unsupported role {role!r}.") from exc
-
-        yield genai.types.Content(role=sdk_role, parts=[genai.types.Part(text=text)])
+        yield genai.types.Content(role=sdk_role, parts=[genai.types.Part(text=message.text)])
 
 
 # ---------------------------------------------------------------------------
@@ -114,9 +113,9 @@ def communicate(conv: Conversation) -> Iterator[str]:  # noqa: D401 – imperati
 
     # 1. Extract the final system prompt (if present) and build the chat history
     system_instruction: str | None = None
-    for role, text in conv:
-        if role == "system":
-            system_instruction = text  # keep **last** one we encounter
+    for message in conv:
+        if message.role == "system":
+            system_instruction = message.text  # keep **last** one we encounter
             continue  # not part of chat history under new API rules
 
     # 2. Kick off streaming generation

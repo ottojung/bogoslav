@@ -170,7 +170,11 @@ body_lines: /(?:(?!(?:\[ME\]:|\[AI\]:|\[SYSTEM\]:))[^\n]*\n)/
 
 MessageRole = Literal["user", "assistant", "system"]
 MessageText = str
-Message = Tuple[MessageRole, MessageText]
+
+@dataclass(frozen=True)
+class Message:
+    role: MessageRole
+    text: MessageText
 
 
 class _MsgTransformer(Transformer[Token, Sequence[Message]]):
@@ -178,13 +182,13 @@ class _MsgTransformer(Transformer[Token, Sequence[Message]]):
         return items
 
     def default_message(self, items: Sequence[str]) -> Message:
-        return ("user", "".join(items))
+        return Message("user", "".join(items))
 
     def message(self, items: Sequence[str]) -> Message:
         role_val: str = items[0]
         role: MessageRole = role_val  # type: ignore
         body = "".join(map(str, items[1:]))
-        return (role, body)
+        return Message(role, body)
 
     def me(self, _: Sequence[Token]) -> MessageRole:
         return "user"

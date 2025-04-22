@@ -5,6 +5,7 @@ from bogoslav.parser import (
     AIBlock,
     parse,
     ParsedAIBlock,
+    Message
 )
 
 # -------------------------------------------------------------------
@@ -89,7 +90,7 @@ with multiple lines.
     assert pb.params == {}
     # since no ```header, we get one ("user", full_content)
     assert pb.messages == [
-        ("user", "Just some text\nwith multiple lines.\n")
+        Message("user", "Just some text\nwith multiple lines.\n")
     ]
 
 def test_parse_with_assistant_and_user_headers() -> None:
@@ -114,12 +115,12 @@ Maybe another question here.
 
     # Expect three messages: default‐user, assistant, then user
     assert pb.messages == [
-        (
+        Message(
             "user",
             "Some question here.\n"
             "Can be multiline...\n"
         ),
-        (
+        Message(
             "assistant",
             "\n"
             "Some response here.\n"
@@ -127,7 +128,7 @@ Maybe another question here.
             "multiline\n"
             "as well.\n"
         ),
-        (
+        Message(
             "user",
             "\n"
             "Maybe another question here.\n"
@@ -155,19 +156,19 @@ Maybe another question here.
 
     # Expect three messages: default‐user, assistant, then user
     assert pb.messages == [
-        (
+        Message(
             "user",
             "Some question here.\n"
             "Can be multiline...\n"
         ),
-        (
+        Message(
             "assistant",
             "Some response here.\n"
             "Can be\n"
             "multiline\n"
             "as well.\n"
         ),
-        (
+        Message(
             "user",
             "\n"
             "Maybe another question here.\n"
@@ -194,19 +195,19 @@ as well.
 
     # Expect three messages: default‐user, assistant, then user
     assert pb.messages == [
-        (
+        Message(
             "user",
             "Some question here.\n"
             "Can be multiline...\n"
         ),
-        (
+        Message(
             "assistant",
             "Some response here.\n"
             "Can be\n"
             "multiline\n"
             "as well.\n"
         ),
-        (
+        Message(
             "user",
             "Maybe another question here.\n"
         ),
@@ -232,19 +233,19 @@ as well.
 
     # Expect three messages: default‐user, assistant, then user
     assert pb.messages == [
-        (
+        Message(
             "user",
             "Some question here.\n"
             "Can be multiline...\n"
         ),
-        (
+        Message(
             "assistant",
             "Some response here.\n"
             "Can be\n"
             "multiline\n"
             "as well.\n"
         ),
-        (
+        Message(
             "user",
             "Maybe another question here.\n"
         ),
@@ -264,8 +265,8 @@ OK thanks
     msgs = parsed[0].messages
     # first message comes from header
     assert msgs == [
-        ("assistant", "\nHello!\n"),
-        ("user", "\nOK thanks\n"),
+        Message("assistant", "\nHello!\n"),
+        Message("user", "\nOK thanks\n"),
     ]
 
 def test_parse_multiple_blocks_top_level() -> None:
@@ -288,13 +289,13 @@ Followup B
     pb1, pb2 = parsed
     assert pb1.language == "a"
     assert pb1.messages == [
-        ("user", "Line A1\nLine A2\n")
+        Message("user", "Line A1\nLine A2\n")
     ]
 
     assert pb2.language == "b"
     assert pb2.messages == [
-        ("assistant", "\nReply B\n"),
-        ("user", "\nFollowup B\n"),
+        Message("assistant", "\nReply B\n"),
+        Message("user", "\nFollowup B\n"),
     ]
 
 def test_parse_malformed_passes_error_through() -> None:

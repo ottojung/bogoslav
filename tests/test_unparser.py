@@ -7,6 +7,7 @@ from bogoslav.parser import parse, ParsedAIBlock
 
 # Import the module under test.  It should be discoverable on PYTHONPATH when
 # the package is installed in editable mode or when running from the repo root.
+from bogoslav.parser import Message
 from bogoslav.unparser import serialize_ai_blocks, serialize_block
 
 
@@ -66,8 +67,8 @@ def test_first_user_header_omitted() -> None:
             language="txt",
             params={},
             messages=[
-                ("user", "Hi there!\n"),
-                ("assistant", "\nHello!\n"),
+                Message("user", "Hi there!\n"),
+                Message("assistant", "\nHello!\n"),
             ],
         )
     ]
@@ -85,7 +86,7 @@ def test_param_quoting_and_ordering() -> None:
         ParsedAIBlock(
             language="python",
             params={"z": 42, "a": "string with \"quotes\" inside"},
-            messages=[("user", "print(\"hi\")\n")],
+            messages=[Message("user", "print(\"hi\")\n")],
         )
     ]
     txt = serialize_ai_blocks(blocks)
@@ -108,8 +109,8 @@ def test_preserves_leading_newline_in_body() -> None:
             language="md",
             params={},
             messages=[
-                ("assistant", "\nHello after newline\n"),
-                ("user", "Inline reply.\n"),
+                Message("assistant", "\nHello after newline\n"),
+                Message("user", "Inline reply.\n"),
             ],
         )
     ]
