@@ -119,17 +119,18 @@ def communicate(conv: Conversation) -> Iterator[str]:  # noqa: D401 – imperati
     # 2. Kick off streaming generation
     contents = tuple(_to_gemini_payload(conv))
     client = _get_client()
+    config = genai.types.GenerateContentConfig(system_instruction=system_instruction)
     stream = client.models.generate_content_stream(
         model=MODEL,
         contents=contents,
-        system_instruction=system_instruction,
+        config=config,
     )
 
     # 3. Yield text parts as soon as they arrive
     for chunk in stream:  # each chunk = types.GenerateContentResponse
         for candidate in chunk.candidates:
             for part in candidate.content.parts:
-                text = part.get("text", "")
+                text = part.text
                 if text:
                     yield text
             break
