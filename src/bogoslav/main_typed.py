@@ -7,6 +7,7 @@ from watchdog.events import FileSystemEventHandler, FileSystemEvent, EVENT_TYPE_
 from .user_error import UserError
 from .logger import logger
 from .process_modification import process_modification
+from .calculate_file_hash import calculate_file_hash, Checksum
 
 
 class CannotWriteToWorkFile(UserError):
@@ -19,12 +20,27 @@ class MyHandler(FileSystemEventHandler):
     def __init__(self, work_file: Path) -> None:
         self.work_file = work_file
         self.target = str(self.work_file)
+        self.checksum: Checksum
+        self.update_hash()
+
+    def calculate_hash(self) -> Checksum:
+        return calculate_file_hash(self.work_file)
+
+    def update_hash(self) -> None:
+        self.checksum = self.calculate_hash()
+
+    def has_content_updated(self) -> bool:
+        last_checksum = self.checksum
+        self.update_hash()
+        return last_checksum != self.checksum
 
     def on_any_event(self, event: FileSystemEvent) -> None:
         if event.event_type == EVENT_TYPE_MODIFIED:
             if event.src_path == self.target:
-                logger.debug("File %r modified.", self.target)
-                process_modification(self.work_file)
+                if self.has_content_updated():
+                    logger.debug("File %r modified.", self.target)
+                    process_modification(self.work_file)
+                    self.update_hash()
 
 
 def main_loop(work_file: Path) -> None:
