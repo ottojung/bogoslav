@@ -15,8 +15,14 @@ def process_modification(work_file: Path) -> None:
     current_text = work_file.read_text()
     blocks = parse(current_text)
 
+    if not blocks:
+        return
+
     first_block = blocks[0]
     messages = first_block.messages
+
+    if not messages:
+        return
 
     if messages[-1].role == "user" and not messages[-1].text.strip():
         return
