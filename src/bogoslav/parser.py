@@ -15,6 +15,8 @@ from dataclasses import dataclass
 from typing import List, Dict, Tuple, Optional, Union, Sequence, Literal
 from lark import Lark, Transformer, Token, Tree
 from ast import literal_eval
+from .message import Message, MessageRole
+
 
 # ------------------------------------------------------------------------------
 # PASS 1: find #+begin_ai … #+end_ai blocks
@@ -166,16 +168,6 @@ body_lines: /(?:(?!(?:\[ME\]:|\[AI\]:|\[SYSTEM\]:))[^\n]*\n)/
 %import common.WS_INLINE
 %import common.NEWLINE
 """
-
-
-MessageRole = Literal["user", "assistant", "system"]
-MessageText = str
-
-@dataclass(frozen=True)
-class Message:
-    role: MessageRole
-    text: MessageText
-
 
 Conversation = Sequence[Message]
 
