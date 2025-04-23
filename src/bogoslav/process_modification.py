@@ -28,13 +28,4 @@ def process_modification(work_file: Path) -> None:
     first_block = replace(first_block, messages=new_messages)
     blocks = (first_block,) + tuple(blocks[:-1])
     work_file.write_text(serialize_ai_blocks(blocks))
-
-    print()
-    print()
-    print()
-    print(blocks)
-    print()
-    print()
-    print()
-
     logger.debug("Updated blocks with a new message.")
