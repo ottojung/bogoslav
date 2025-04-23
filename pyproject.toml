@@ -17,6 +17,7 @@ classifiers = [
 dependencies = [
     "google-genai",
     "lark",
+    "watchdog",
 ]
 
 [project.scripts]
