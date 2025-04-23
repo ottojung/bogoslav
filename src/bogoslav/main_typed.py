@@ -9,7 +9,7 @@ from .logger import logger
 class CannotWriteToWorkFile(UserError):
     def __init__(self, path: Path) -> None:
         self.path = path
-        super().__init__(fmt="Cannot write to work file %r.", fmt_args=[str(path)], code=1)
+        self._init("Cannot write to work file %r.", str(path))
 
 
 def main_typed(work_file: Path) -> None:
