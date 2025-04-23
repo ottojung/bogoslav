@@ -5,21 +5,14 @@ from typing import NoReturn
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileSystemEvent, EVENT_TYPE_MODIFIED
 from .user_error import UserError
-from .parser import parse
-from .ai_communicator import communicate
 from .logger import logger
+from .process_modification import process_modification
 
 
 class CannotWriteToWorkFile(UserError):
     def __init__(self, path: Path) -> None:
         self.path = path
         self._init("Cannot write to work file %r.", str(path))
-
-        # current_text = work_file.read_text()
-        # blocks = parse(current_text)
-        # messages = blocks[0].messages
-        # for chunk in communicate(messages):
-        #     print(chunk, end='')
 
 
 class MyHandler(FileSystemEventHandler):
@@ -30,7 +23,8 @@ class MyHandler(FileSystemEventHandler):
     def on_any_event(self, event: FileSystemEvent) -> None:
         if event.event_type == EVENT_TYPE_MODIFIED:
             if event.src_path == self.target:
-                print(f"{event.event_type!r}: {event.src_path!r}")
+                logger.debug("File %r modified.", self.target)
+                process_modification(self.work_file)
 
 
 def main_loop(work_file: Path) -> None:
