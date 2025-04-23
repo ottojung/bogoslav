@@ -1,13 +1,24 @@
 
 from dataclasses import dataclass
-from typing import Literal
+from typing import Union
 
 
-MessageRole = Literal["user", "assistant", "system"]
 MessageText = str
 
 
 @dataclass(frozen=True)
-class Message:
-    role: MessageRole
+class UserMessage:
     text: MessageText
+
+
+@dataclass(frozen=True)
+class AssistantMessage:
+    text: MessageText
+
+
+@dataclass(frozen=True)
+class SystemMessage:
+    text: MessageText
+
+
+Message = Union[UserMessage, AssistantMessage, SystemMessage]
