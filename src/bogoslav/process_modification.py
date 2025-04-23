@@ -27,6 +27,8 @@ def process_modification(work_file: Path) -> None:
     if messages[-1].role == "user" and not messages[-1].text.strip():
         return
 
+    # TODO: print a spinning wheel or something like a progress bar or
+    # "alive status" indicator.
     text = ''
     for chunk in communicate(messages):
         text += chunk
