@@ -26,9 +26,11 @@ The formatter aims to produce clean, human‑readable output:
   closely matching the styles present in the reference tests.
 """
 
-from typing import Sequence, Tuple, Dict, Union, List
+from typing import Sequence, Tuple, Dict, Union, List, NoReturn
 
-from bogoslav.parser import ParsedAIBlock, MessageRole, MessageText, Message
+from .parser import ParsedAIBlock, MessageRole, MessageText, Message
+
+from .logger import logger
 
 ParamValue = Union[str, int]
 
@@ -67,7 +69,15 @@ def _serialise_params(params: Dict[str, ParamValue]) -> str:
 # ---------------------------------------------------------------------------
 
 def _header_for_role(role: MessageRole) -> str:
-    return "[ME]:" if role == "user" else "[AI]:"
+    if role == "user":
+        return "[ME]:"
+    elif role == "assistant":
+        return "[AI]:"
+    elif role == "system":
+        return "[SYSTEM]:"
+    else:
+        _x: NoReturn = role
+        raise ValueError(f"Unexpected role {role!r}.")
 
 
 def _serialise_messages(messages: Sequence[Message]) -> str:
@@ -75,19 +85,7 @@ def _serialise_messages(messages: Sequence[Message]) -> str:
     out_parts: List[str] = []
 
     for idx, message in enumerate(messages):
-        # Decide whether to drop the header for the very first user message –
-        # this recreates the *default_user* shorthand accepted by the grammar.
-        if idx == 0 and message.role == "user":
-            # Safe to omit header iff the body does **not** start with a newline
-            # (because, in that case, the leading newline would become
-            # indistinguishable from the newline *after* a header that lives on
-            # its own line).
-            if not message.text.startswith("\n"):
-                out_parts.append(message.text)
-                continue  # move on to next message
-
         header = _header_for_role(message.role)
-
         if message.text.startswith("\n"):
             # Put header on its own line → keep the leading newline in *body*.
             out_parts.append(header + message.text)
@@ -107,7 +105,12 @@ def serialize_block(block: ParsedAIBlock) -> str:
     """Serialise a single :class:`~bogoslav.parser.ParsedAIBlock`."""
     begin = f"#+begin_ai {block.language}{_serialise_params(block.params)}\n"
     body = _serialise_messages(block.messages)
-    end = "#+end_ai\n"
+    if body.endswith("\n"):
+        end = ""
+    else:
+        end = "\n"
+    end += "#+end_ai"
+    end += "\n"
     return begin + body + end
 
 

@@ -61,7 +61,7 @@ def test_round_trip_multiple_blocks() -> None:
 # Formatting behaviour – specific expectations
 # ---------------------------------------------------------------------------
 
-def test_first_user_header_omitted() -> None:
+def test_first_user_header_not_omitted() -> None:
     blocks = [
         ParsedAIBlock(
             language="txt",
@@ -75,7 +75,7 @@ def test_first_user_header_omitted() -> None:
     text = serialize_ai_blocks(blocks)
 
     # The very first message should appear without a [ME]: header
-    assert "[ME]:" not in text.split("\n", 2)[1]  # second line is body
+    assert "[ME]:" in text.split("\n", 2)[1]  # second line is body
 
     # Round‑trip remains identical
     assert parse(text) == blocks
